@@ -50,6 +50,7 @@
             <div class="title">Uber</div>
              <input class="btn" type="file" @change="addUber" accept=".csv" />
             <div v-show="fileMatrixUber != ''" class="loaded btn">Załadowano</div>
+            {{fileMatrixUber}}
 
           </div>
           <div class="section">
@@ -69,31 +70,25 @@ import { ref } from "vue";
 const boltWeekBalance = ref(0);
 const boltWeekCash = ref(0);
 const boltPayment = ref(0);
+const UberWeekBalance = ref(0);
+const UberWeekCash = ref(0);
+const UberPayment = ref(0);
+const FreeNowWeekBalance = ref(0);
+const FreeNowWeekCash = ref(0);
+const FreeNowPayment = ref(0);
 const showBolt = ref(false);
+const showUber = ref(false);
+const showFreeNow = ref(false);
 
 let driversBolt = [
     { Kierowca: '', Gotówka: 0, Przelew: 0, Bonus: 0, Napiwki: 0, Utarg: 0 }
 ];
-
-// function addDriver(fileMatrixBolt) {
-//   console.log("FileMatrixBolt",fileMatrixBolt)
-//   for (let index = 1; index < fileMatrixBolt.length; index++) {
-//     let row = fileMatrixBolt[index];
-//     if (row.length > 1) {
-//       let newDriver = {
-//         Kierowca: capitalize(row[0]),
-//         Gotówka:  convertToNumber((row[9]))*-1,
-//         Przelew: row[15],
-//         Bonus: row[11],
-//         Napiwki: row[14],
-//         Utarg: row[3]
-//       };
-//       driversBolt.push(newDriver);
-//     } else {
-//       break;
-//     }
-//   }
-// }
+let driversUber = [
+    { Kierowca: '', Gotówka: 0, Przelew: 0, Bonus: 0, Napiwki: 0, Utarg: 0 }
+];
+let driversFreeNow = [
+    { Kierowca: '', Gotówka: 0, Przelew: 0, Bonus: 0, Napiwki: 0, Utarg: 0 }
+];
 
 function addDriver(fileMatrixBolt) {
 
@@ -146,7 +141,6 @@ const fileRowsFreeNow = ref([]);
 const addBolt = (event) => {
   const selectedFile = event.target.files[0];
   const reader = new FileReader();
-
   reader.onload = (e) => {
     fileContentBolt.value = e.target.result;
     fileRowsBolt.value = e.target.result.split("\n");
@@ -157,21 +151,11 @@ const addBolt = (event) => {
     boltWeekBalance.value += convertToNumber(fileMatrixBolt.value[1][15]);
     boltWeekCash.value += convertToNumber(fileMatrixBolt.value[1][9]);
     boltPayment.value += convertToNumber(fileMatrixBolt.value[1][8]);
-    console.log("FileMatrixBolt", fileMatrixBolt);
-    console.log("Aktualni kierowcy przed dodaniem:", driversBolt);
     addDriver(fileMatrixBolt.value);
     removeDriversWithAllZeros();
   };
   reader.readAsText(selectedFile, "UTF-8");
 };
-
-function convertToNumber(string) {
-  return parseFloat(string.replace(',', '.'));
-}
-
-function capitalize(str) {
-  return str.toLowerCase().split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
-}
 
 const addUber = (event) => {
   const selectedFile = event.target.files[0];
@@ -180,7 +164,15 @@ const addUber = (event) => {
   reader.onload = (e) => {
     fileContentUber.value = e.target.result;
     fileRowsUber.value = e.target.result.split("\n");
-    fileMatrixUber.value = fileRowsUber.value.map((row) => row.split(";"));
+    fileRowsUber.value = fileContentUber.value.replace(/\r/g, '').split("\n");
+    fileMatrixUber.value = fileRowsUber.value.map((row) =>
+    row.split(',').map(cell => cell.replace(/^"|"$/g, ''))
+    );
+    // addDriverUber(fileMatrixUber.value);
+    // console.log(fileMatrixUber.value[1][1])
+    // UberWeekBalance.value += convertToNumber(fileMatrixUber.value[1][15]);
+    // UberWeekCash.value += convertToNumber(fileMatrixUber.value[1][9]);
+    // UberPayment.value += convertToNumber(fileMatrixUber.value[1][8]);
   };
   reader.readAsText(selectedFile, "UTF-8");
 
@@ -194,11 +186,18 @@ const addFreeNow = (event) => {
     fileContentFreeNow.value = e.target.result;
     fileRowsFreeNow.value = e.target.result.split("\n");
     fileMatrixFreeNow.value = fileRowsFreeNow.value.map((row) => row.split(";"));
-    console.log(fileMatrixFreeNow.value);
   };
   reader.readAsText(selectedFile, "UTF-8");
 
 };
+
+function convertToNumber(string) {
+  return parseFloat(string.replace(',', '.'));
+}
+
+function capitalize(str) {
+  return str.toLowerCase().split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+}
 
 function removeDriversWithAllZeros() {
   driversBolt = driversBolt.filter(driver => {
@@ -215,8 +214,6 @@ onMounted(() => {
   driversBolt.value = [
     { Kierowca: '', Gotówka: 0, Przelew: 0, Bonus: 0, Napiwki: 0, Utarg: 0 }
   ];
-  console.log("FileMatrixBolt", fileMatrixBolt.value);
-  console.log("Aktualni kierowcy przed dodaniem:", driversBolt.value);
 });
 
 </script>
