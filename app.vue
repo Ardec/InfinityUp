@@ -19,7 +19,31 @@
               <br>
               <div class="input-title-content">Opłata - {{(boltPayment*-1).toFixed(2)}}</div>
               <div class="input-title-content">Bilans - {{((boltWeekBalance + boltWeekCash*-1).toFixed(2) - (boltPayment*-1).toFixed(2)).toFixed(2)}}</div>
-              <div class="btn">Pokaż szczegóły kierowców Uber</div>
+              <div @click="showBolt = !showBolt" class="btn">Pokaż szczegóły kierowców Uber</div>
+              <div v-if="showBolt === true">
+    <table>
+      <thead>
+        <tr>
+          <th>Kierowca</th>
+          <th>Gotówka</th>
+          <th>Przelew</th>
+          <th>Bonus</th>
+          <th>Napiwki</th>
+          <th>Utarg</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="(driver, index) in driversBolt" :key="index">
+          <td>{{ driver.Kierowca }}</td>
+          <td>{{ driver.Gotówka }}</td>
+          <td>{{ driver.Przelew }}</td>
+          <td>{{ driver.Bonus }}</td>
+          <td>{{ driver.Napiwki }}</td>
+          <td>{{ driver.Utarg }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
               </div>
           </div>
           <div class="section">
@@ -45,29 +69,67 @@ import { ref } from "vue";
 const boltWeekBalance = ref(0);
 const boltWeekCash = ref(0);
 const boltPayment = ref(0);
+const showBolt = ref(false);
 
 let driversBolt = [
     { Kierowca: '', Gotówka: 0, Przelew: 0, Bonus: 0, Napiwki: 0, Utarg: 0 }
 ];
 
+// function addDriver(fileMatrixBolt) {
+//   console.log("FileMatrixBolt",fileMatrixBolt)
+//   for (let index = 1; index < fileMatrixBolt.length; index++) {
+//     let row = fileMatrixBolt[index];
+//     if (row.length > 1) {
+//       let newDriver = {
+//         Kierowca: capitalize(row[0]),
+//         Gotówka:  convertToNumber((row[9]))*-1,
+//         Przelew: row[15],
+//         Bonus: row[11],
+//         Napiwki: row[14],
+//         Utarg: row[3]
+//       };
+//       driversBolt.push(newDriver);
+//     } else {
+//       break;
+//     }
+//   }
+// }
+
 function addDriver(fileMatrixBolt) {
-  console.log(fileMatrixBolt)
-  for (let row of fileMatrixBolt) { // Teraz iterujemy po właściwej wartości, nie po 'ref'
+
+  for (let index = 1; index < fileMatrixBolt.length; index++) {
+    let row = fileMatrixBolt[index];
     if (row.length > 1) {
-      let newDriver = {
-        Kierowca: row[0], 
-        Gotówka: row[1], 
-        Przelew: row[2],
-        Bonus: row[3],
-        Napiwki: row[4],
-        Utarg: row[5]
-      };
-      driversBolt.push(newDriver);
+      const driverName = capitalize(row[0]);
+
+      // Sprawdź, czy kierowca już istnieje
+      const existingDriverIndex = driversBolt.findIndex(driver => driver.Kierowca === driverName);
+      if (existingDriverIndex !== -1) {
+        // Jeśli kierowca już istnieje, wyświetl alert
+        // alert(`Kierowca ${driverName} już istnieje w tablicy pod indeksem ${existingDriverIndex}`);
+         driversBolt[existingDriverIndex].Gotówka = parseFloat((driversBolt[existingDriverIndex].Gotówka + convertToNumber(row[9]) * -1).toFixed(2));
+        driversBolt[existingDriverIndex].Przelew = parseFloat((driversBolt[existingDriverIndex].Przelew + convertToNumber(row[15])).toFixed(2));
+        driversBolt[existingDriverIndex].Bonus = parseFloat((driversBolt[existingDriverIndex].Bonus + convertToNumber(row[11])).toFixed(2));
+        driversBolt[existingDriverIndex].Napiwki = parseFloat((driversBolt[existingDriverIndex].Napiwki + convertToNumber(row[14])).toFixed(2));
+        driversBolt[existingDriverIndex].Utarg = parseFloat((driversBolt[existingDriverIndex].Utarg + convertToNumber(row[3])).toFixed(2));
+      } else {
+        // Jeśli kierowca nie istnieje, dodaj go do tablicy
+        let newDriver = {
+          Kierowca: driverName,
+          Gotówka: parseFloat((convertToNumber(row[9]) * -1).toFixed(2)),
+          Przelew: parseFloat(convertToNumber(row[15]).toFixed(2)),
+          Bonus: parseFloat(convertToNumber(row[11]).toFixed(2)),
+          Napiwki: parseFloat(convertToNumber(row[14]).toFixed(2)),
+          Utarg: parseFloat(convertToNumber(row[3]).toFixed(2))
+        };
+        driversBolt.push(newDriver);
+      }
     } else {
       break;
     }
   }
 }
+
 
 const fileMatrixBolt = ref([]);
 const fileContentBolt = ref("");
@@ -88,7 +150,6 @@ const addBolt = (event) => {
   reader.onload = (e) => {
     fileContentBolt.value = e.target.result;
     fileRowsBolt.value = e.target.result.split("\n");
-    // fileMatrixBolt.value = fileRowsBolt.value.map((row) => row.split('","'));
     fileRowsBolt.value = fileContentBolt.value.replace(/\r/g, '').split("\n");
     fileMatrixBolt.value = fileRowsBolt.value.map((row) =>
       row.split('","').map(cell => cell.replace(/^"|"$/g, ''))
@@ -96,15 +157,20 @@ const addBolt = (event) => {
     boltWeekBalance.value += convertToNumber(fileMatrixBolt.value[1][15]);
     boltWeekCash.value += convertToNumber(fileMatrixBolt.value[1][9]);
     boltPayment.value += convertToNumber(fileMatrixBolt.value[1][8]);
-    console.log("FILEMATRIX_BOLT",fileMatrixBolt.value);
+    console.log("FileMatrixBolt", fileMatrixBolt);
+    console.log("Aktualni kierowcy przed dodaniem:", driversBolt);
     addDriver(fileMatrixBolt.value);
+    removeDriversWithAllZeros();
   };
   reader.readAsText(selectedFile, "UTF-8");
-  console.log("DRIVERS-BOLT",driversBolt);
 };
 
 function convertToNumber(string) {
   return parseFloat(string.replace(',', '.'));
+}
+
+function capitalize(str) {
+  return str.toLowerCase().split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
 }
 
 const addUber = (event) => {
@@ -133,6 +199,25 @@ const addFreeNow = (event) => {
   reader.readAsText(selectedFile, "UTF-8");
 
 };
+
+function removeDriversWithAllZeros() {
+  driversBolt = driversBolt.filter(driver => {
+    // Sprawdza, czy jakakolwiek wartość nie jest równa zero
+    return driver.Gotówka !== 0 ||
+           driver.Przelew !== 0 ||
+           driver.Bonus !== 0 ||
+           driver.Napiwki !== 0 ||
+           driver.Utarg !== 0;
+  });
+}
+
+onMounted(() => {
+  driversBolt.value = [
+    { Kierowca: '', Gotówka: 0, Przelew: 0, Bonus: 0, Napiwki: 0, Utarg: 0 }
+  ];
+  console.log("FileMatrixBolt", fileMatrixBolt.value);
+  console.log("Aktualni kierowcy przed dodaniem:", driversBolt.value);
+});
 
 </script>
 
