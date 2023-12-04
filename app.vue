@@ -3,8 +3,10 @@
     <div class="title">InfinityUp Management</div>
     <div class="input-container">
       <div class="input-content">
+        <hr>
         <div class="input-title-content">Wprowadź dane</div>
         <div class="input-subtitle-content">Dodaj wcześniej przygotowane pliki wsadowe CSV </div>
+        <hr>
         <div class="input-section">
           <div class="section">
             <div class="title">Bolt</div>
@@ -90,11 +92,13 @@
             <div v-show="fileMatrixFreeNow != ''" class="loaded btn">Załadowano</div>
               <div class="summary" v-show="fileMatrixFreeNow != ''">
               <br>
-                      <div class="input-title-content">Sprzedaż w okresie - {{ freeNowWeekBalance}}</div>
+                      <div class="input-title-content">Sprzedaż w okresie - {{ freeNowWeekBalance }}</div>
                       <br>
               <div>Przelew: {{freeNowWeekBank}}</div>
               <div>Gotówka: {{freeNowWeekCash}}</div>
               <br>
+              <div class="input-title-content">Opłata - {{(freeNowPayment).toFixed(2)}}</div>
+              <div class="input-title-content">Bilans - {{((freeNowWeekBalance).toFixed(2) - (freeNowPayment).toFixed(2)).toFixed(2)}}</div>
               <div @click="showFreeNow = !showFreeNow" class="btn">Pokaż szczegóły kierowców Uber</div>
               </div>
                        <div v-if="showFreeNow === true">
@@ -125,12 +129,16 @@
         </div>
       </div>
     </div>
+    <hr>
       <div class="input-title-content">Podsumowanie</div>
+      <hr>
       <br>
-        <div class="input-subtitle-content">Utarg w okresie {{(boltWeekBalance + boltWeekCash*-1).toFixed(2) + boltWeekBalance + freeNowWeekBalance}} </div>
-        <div class="input-subtitle-content">W tym przelewem {{boltWeekBalance + uberWeekBank + freeNowWeekBank }} </div>
-        <div class="input-subtitle-content">W tym kartą {{(boltWeekCash*-1) + uberWeekCash + freeNowWeekCash}} </div>
+                      <div class="input-title-content">Utarg w okresie {{(boltWeekBalance + uberWeekBank + freeNowWeekBank + (boltWeekCash*-1) + uberWeekCash + freeNowWeekCash).toFixed(2)}}</div>
+                      <br>
+        <div class="input-subtitle-content">W tym przelewem {{ (boltWeekBalance + uberWeekBank + freeNowWeekBank).toFixed(2) }} </div>
+        <div class="input-subtitle-content">W tym gotówką {{ ((boltWeekCash*-1) + uberWeekCash + freeNowWeekCash).toFixed(2) }} </div>
         <br>
+        <hr>
          <div class="input-title-content">Statystyki kierowców ze wszystkich danych</div>
          <div @click="calculateDrivers()" class="btn">Oblicz</div>
     <table v-if="allDrivers.length > 1">
@@ -296,7 +304,6 @@ function addDriverUber(fileMatrixUber) {
   for (let index = 1; index < fileMatrixUber.length; index++) {
     let row = fileMatrixUber[index];
     if (row.length > 1) {
-      console.log("ROW",row)
        let newDriver = {
     Kierowca: capitalize(row[1]) + ' ' + capitalize(row[2]),
     Gotówka: parseFloat((convertToNumberWithDefault(row[5], 0) * -1).toFixed(2)),
@@ -305,6 +312,10 @@ function addDriverUber(fileMatrixUber) {
     Napiwki: parseFloat(convertToNumberWithDefault(row[16], 0).toFixed(2)),
     Utarg: parseFloat(convertToNumberWithDefault(row[4], 0).toFixed(2))
   };
+        if(newDriver.Kierowca == "Kamil Muskus" && newDriver.Przelew < 0){
+          console.log("#")
+          newDriver.Przelew = newDriver.Przelew *-1
+          }
         driversUber.push(newDriver);
       }
   }
@@ -340,11 +351,12 @@ function addDriverFreeNow(fileMatrixFreeNow) {
        let newDriver = {
     Kierowca: capitalize(row[1]),
     Gotówka: parseFloat((convertToNumberWithDefault(row[5], 0)).toFixed(2)),
-    Przelew: 0,
+    Przelew: parseFloat(convertToNumberWithDefault(row[20]-row[5], 0).toFixed(2)),
     Bonus: parseFloat(convertToNumberWithDefault(row[7], 0).toFixed(2)),
     Napiwki: parseFloat(convertToNumberWithDefault(row[8], 0).toFixed(2)),
     Utarg: parseFloat(convertToNumberWithDefault(row[20], 0).toFixed(2))
   };
+        freeNowPayment.value += parseFloat(convertToNumberWithDefault(row[17], 0).toFixed(2)),
         driversFreeNow.push(newDriver);
       }
   }
@@ -411,10 +423,6 @@ function driversSummary(driversBolt, driversUber, driversFreeNow) {
       driverArray.push({...driver});
     }
   }
-  // console.log(combinedDrivers)
-  // console.log(allDrivers)
-  // allDrivers.value = combinedDrivers.value  
-  // console.log(allDrivers)
   return combinedDrivers;
 }
 
