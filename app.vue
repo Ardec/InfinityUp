@@ -439,8 +439,7 @@ function addDriver(fileMatrixBolt) {
           (driversBolt[existingDriverIndex].Napiwki + convertToNumber(row[14])).toFixed(2)
         );
         driversBolt[existingDriverIndex].Utarg = parseFloat(
-          (driversBolt[existingDriverIndex].Utarg + convertToNumber(row[3])).toFixed(2)
-        );
+          (driversBolt[existingDriverIndex].Utarg + convertToNumber(row[15]) + (convertToNumber(row[9])*-1)).toFixed(2));
       } else {
         // Jeśli kierowca nie istnieje, dodaj go do tablicy
         let newDriver = {
@@ -449,7 +448,7 @@ function addDriver(fileMatrixBolt) {
           Przelew: parseFloat(convertToNumber(row[15]).toFixed(2)),
           Bonus: parseFloat(convertToNumber(row[11]).toFixed(2)),
           Napiwki: parseFloat(convertToNumber(row[14]).toFixed(2)),
-          Utarg: parseFloat(convertToNumber(row[3]).toFixed(2)),
+          Utarg: parseFloat((convertToNumber(row[15]) + (convertToNumber(row[9])*-1)).toFixed(2)),
         };
         driversBolt.push(newDriver);
       }
@@ -650,22 +649,27 @@ function calculateDrivers() {
 function updateFuelData(drivers, fileMatrixInfinity, fileMatrixOrlen) {
 
   drivers.forEach(driver => {
-
     fileMatrixInfinity.forEach(infinity => {
-       if (capitalize(infinity[2]) == driver.Kierowca) {
+      //  console.log("porównuję",infinity[2], driver.Kierowca)
+       if (capitalize(infinity[2]).trim() == capitalize(driver.Kierowca).trim()) {
         let paliwo = infinity[0]
         let pensja = infinity[3]
-        driver.Paliwo = parseFloat(infinity[0]) || 0;
+        let foundOrlenRecord = false;
+        // driver.Paliwo = parseFloat(infinity[0])
           fileMatrixOrlen.forEach(orlen =>{
-            if(paliwo == orlen[0]){
-              driver.Paliwo = parseFloat(orlen[3]) || 0;
+            if(paliwo === orlen[0]){
+              driver.Paliwo = parseFloat(orlen[3])
+              foundOrlenRecord = true;
             }
           })
+          if (!foundOrlenRecord) {
+          driver.Paliwo = 0;
+        }
           if(pensja == "A"){driver.Pensja = (((driver.Utarg - driver.Napiwki)*0.5)-(driver.Paliwo)).toFixed(2)}
-          if(pensja == "B"){driver.Pensja = ((driver.Utarg - driver.Napiwki)*0.4).toFixed(2)}
+          if(pensja == "B" && driver.Utarg >= 2100 ){driver.Pensja = ((driver.Utarg - driver.Napiwki)*0.4).toFixed(2)}
+          if(pensja == "B" && driver.Utarg < 2100 ){driver.Pensja = ((driver.Utarg - driver.Napiwki)*0.3).toFixed(2)}
     }
     })
-    
   });
 }
 
