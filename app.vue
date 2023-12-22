@@ -318,13 +318,13 @@ const showOrlen = ref(false);
 const showInfinity = ref(false);
 
 let driversBolt = [
-  { Kierowca: "", Gotówka: 0, Przelew: 0, Bonus: 0, Napiwki: 0, Utarg: 0 },
+  { Kierowca: "", Gotówka: 0, Przelew: 0, Bonus: 0, Napiwki: 0, Utarg: 0, Paliwo: 0, Pensja: 0, },
 ];
 let driversUber = [
-  { Kierowca: "", Gotówka: 0, Przelew: 0, Bonus: 0, Napiwki: 0, Utarg: 0 },
+  { Kierowca: "", Gotówka: 0, Przelew: 0, Bonus: 0, Napiwki: 0, Utarg: 0, Paliwo: 0, Pensja: 0, },
 ];
 let driversFreeNow = [
-  { Kierowca: "", Gotówka: 0, Przelew: 0, Bonus: 0, Napiwki: 0, Utarg: 0 },
+  { Kierowca: "", Gotówka: 0, Przelew: 0, Bonus: 0, Napiwki: 0, Utarg: 0, Paliwo: 0, Pensja: 0,},
 ];
 const allDrivers = ref([
   { Kierowca: "", Gotówka: 0, Przelew: 0, Bonus: 0, Napiwki: 0, Utarg: 0, Paliwo: 0, Pensja: 0, },
@@ -500,9 +500,9 @@ function addDriverUber(fileMatrixUber) {
         Napiwki: parseFloat(convertToNumberWithDefault(row[16], 0).toFixed(2)),
         Utarg: parseFloat(convertToNumberWithDefault(row[4], 0).toFixed(2)),
       };
-      if (newDriver.Kierowca == "Kamil Muskus" && newDriver.Przelew < 0) {
-        console.log("#");
-        newDriver.Przelew = newDriver.Przelew * -1;
+      if (newDriver.Kierowca == "Kamil Muskus") {
+        newDriver.Przelew = 0; // zerujemy gotówkę i przelew dla Kamil Muskus.
+        newDriver.Gotówka = 0;
       }
       driversUber.push(newDriver);
     }
