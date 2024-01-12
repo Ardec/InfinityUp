@@ -665,9 +665,9 @@ function updateFuelData(drivers, fileMatrixInfinity, fileMatrixOrlen) {
           if (!foundOrlenRecord) {
           driver.Paliwo = 0;
         }
-          if(pensja == "A"){driver.Pensja = (((driver.Utarg - driver.Napiwki)*0.5)-(driver.Paliwo)).toFixed(2)}
-          if(pensja == "B" && driver.Utarg >= 2100 ){driver.Pensja = ((driver.Utarg - driver.Napiwki)*0.4).toFixed(2)}
-          if(pensja == "B" && driver.Utarg < 2100 ){driver.Pensja = ((driver.Utarg - driver.Napiwki)*0.3).toFixed(2)}
+          if(pensja == "A"){driver.Pensja = (((driver.Utarg - driver.Napiwki)*0.5)-(driver.Paliwo/2) + driver.Napiwki).toFixed(2)}
+          if(pensja == "B" && driver.Utarg >= (2100 + driver.Bonus) ){driver.Pensja = (((driver.Utarg - driver.Napiwki)*0.4) + driver.Napiwki ).toFixed(2)}
+          if(pensja == "B" && driver.Utarg < (2100 + driver.Bonus) ){driver.Pensja = (((driver.Utarg - driver.Napiwki)*0.3) + driver.Napiwki ).toFixed(2)}
     }
     })
   });
