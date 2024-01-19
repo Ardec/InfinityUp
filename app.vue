@@ -547,9 +547,9 @@ function addDriverUber(fileMatrixUber) {
         if (driversUber[existingDriverIndex].Kierowca === "Kamil Muskus") {
           driversUber[existingDriverIndex].Przelew = 0;
           driversUber[existingDriverIndex].Gotówka = 0;
-          driversUber[existingDriverIndex].Bonus = 0;
-          driversUber[existingDriverIndex].Napiwki = 0;
-          driversUber[existingDriverIndex].Utarg = 0;
+          // driversUber[existingDriverIndex].Bonus = 0;
+          // driversUber[existingDriverIndex].Napiwki = 0;
+          // driversUber[existingDriverIndex].Utarg = 0;
         }
       } else {
         // Dodaj nowego kierowcę
@@ -565,9 +565,9 @@ function addDriverUber(fileMatrixUber) {
         if (driverName === "Kamil Muskus") {
           newDriver.Przelew = 0;
           newDriver.Gotówka = 0;
-          newDriver.Bonus = 0;
-          newDriver.Napiwki = 0;
-          newDriver.Utarg = 0;
+          // newDriver.Bonus = 0;
+          // newDriver.Napiwki = 0;
+          // newDriver.Utarg = 0;
         }
        driversUber.push(newDriver);
       }
