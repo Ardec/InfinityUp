@@ -375,6 +375,7 @@ const addInfinity = (event) => {
 const addOrlen = (event) => {
   const selectedFile = event.target.files[0];
   const reader = new FileReader();
+
   reader.onload = (e) => {
     fileContentOrlen.value = e.target.result;
     fileRowsOrlen.value = e.target.result.split("\n");
@@ -392,6 +393,7 @@ const addOrlen = (event) => {
 const addBolt = (event) => {
   const selectedFile = event.target.files[0];
   const reader = new FileReader();
+
   reader.onload = (e) => {
     fileContentBolt.value = e.target.result;
     fileRowsBolt.value = e.target.result.split("\n");
@@ -399,9 +401,11 @@ const addBolt = (event) => {
     fileMatrixBolt.value = fileRowsBolt.value.map((row) =>
       row.split('","').map((cell) => cell.replace(/^"|"$/g, ""))
     );
+
     boltWeekBalance.value += convertToNumber(fileMatrixBolt.value[1][15]);
     boltWeekCash.value += convertToNumber(fileMatrixBolt.value[1][9]);
     boltPayment.value += convertToNumber(fileMatrixBolt.value[1][8]);
+
     addDriver(fileMatrixBolt.value);
     removeDriversWithAllZeros();
   };
@@ -413,6 +417,7 @@ const addBolt = (event) => {
 function addDriver(fileMatrixBolt) {
   for (let index = 2; index < fileMatrixBolt.length; index++) {
     let row = fileMatrixBolt[index];
+    
     if (row.length > 1) {
       const driverName = capitalize(row[0]);
 
@@ -472,6 +477,7 @@ const addUber = (event) => {
       row.split(",").map((cell) => cell.replace(/^"|"$/g, ""))
     );
     addDriverUber(fileMatrixUber.value);
+    removeDriversWithAllZerosUber();
     uberWeekBalance.value = parseFloat(
       driversUber.reduce((sum, driver) => sum + driver.Utarg, 0).toFixed(2)
     );
@@ -487,12 +493,67 @@ const addUber = (event) => {
 
 // Tworzenie kierowców Uber
 
+// function addDriverUber(fileMatrixUber) {
+//   driversUber = [];
+//   for (let index = 1; index < fileMatrixUber.length; index++) {
+//     let row = fileMatrixUber[index];
+//     if (row.length > 1) {
+//       let newDriver = {
+//         Kierowca: capitalize(row[1]) + " " + capitalize(row[2]),
+//         Gotówka: parseFloat((convertToNumberWithDefault(row[5], 0) * -1).toFixed(2)),
+//         Przelew: parseFloat(convertToNumberWithDefault(row[3], 0).toFixed(2)),
+//         Bonus: parseFloat(convertToNumberWithDefault(row[17], 0).toFixed(2)),
+//         Napiwki: parseFloat(convertToNumberWithDefault(row[16], 0).toFixed(2)),
+//         Utarg: parseFloat(convertToNumberWithDefault(row[4], 0).toFixed(2)),
+//       };
+//       if (newDriver.Kierowca == "Kamil Muskus") {
+//         newDriver.Przelew = 0; // zerujemy gotówkę i przelew dla Kamil Muskus.
+//         newDriver.Gotówka = 0;
+//       }
+//       driversUber.push(newDriver);
+//     }
+//   }
+// }
+
 function addDriverUber(fileMatrixUber) {
-  driversUber = [];
   for (let index = 1; index < fileMatrixUber.length; index++) {
     let row = fileMatrixUber[index];
+    // console.log("row",row)
+    // console.log(fileMatrixUber)
+    console.log(driversUber)
     if (row.length > 1) {
-      let newDriver = {
+      const driverName = capitalize(row[1]) + ' ' + capitalize(row[2]);
+      // console.log(driverName)
+
+      // Sprawdź, czy kierowca już istnieje
+      const existingDriverIndex = driversUber.findIndex(
+        (driver) => driver.Kierowca === driverName
+      );
+      // console.log(existingDriverIndex)
+
+      if (existingDriverIndex !== -1) {
+        // Aktualizuj istniejącego kierowcę
+        console.log("row17", row[17])
+        console.log("stara wartosc",driversUber[existingDriverIndex].Bonus)
+        console.log("dodawana wartosc",parseFloat((driversUber[existingDriverIndex].Bonus + convertToNumberWithDefault(row[17], 0)).toFixed(2)))
+        driversUber[existingDriverIndex].Gotówka = parseFloat((driversUber[existingDriverIndex].Gotówka + convertToNumberWithDefault(row[5], 0) * -1).toFixed(2));
+        driversUber[existingDriverIndex].Przelew = parseFloat((driversUber[existingDriverIndex].Przelew + convertToNumberWithDefault(row[3], 0)).toFixed(2));
+        driversUber[existingDriverIndex].Bonus = parseFloat((driversUber[existingDriverIndex].Bonus + convertToNumberWithDefault(row[17], 0)).toFixed(2));
+        driversUber[existingDriverIndex].Napiwki = parseFloat((driversUber[existingDriverIndex].Napiwki + convertToNumberWithDefault(row[16], 0)).toFixed(2));
+        driversUber[existingDriverIndex].Utarg = parseFloat((driversUber[existingDriverIndex].Utarg + convertToNumberWithDefault(row[4], 0)).toFixed(2));
+
+        // Zeruj gotówkę i przelew dla Kamil Muskus
+        // console.log(driversUber[existingDriverIndex].Kierowca)
+        if (driversUber[existingDriverIndex].Kierowca === "Kamil Muskus") {
+          driversUber[existingDriverIndex].Przelew = 0;
+          driversUber[existingDriverIndex].Gotówka = 0;
+          driversUber[existingDriverIndex].Bonus = 0;
+          driversUber[existingDriverIndex].Napiwki = 0;
+          driversUber[existingDriverIndex].Utarg = 0;
+        }
+      } else {
+        // Dodaj nowego kierowcę
+        let newDriver = {
         Kierowca: capitalize(row[1]) + " " + capitalize(row[2]),
         Gotówka: parseFloat((convertToNumberWithDefault(row[5], 0) * -1).toFixed(2)),
         Przelew: parseFloat(convertToNumberWithDefault(row[3], 0).toFixed(2)),
@@ -500,11 +561,16 @@ function addDriverUber(fileMatrixUber) {
         Napiwki: parseFloat(convertToNumberWithDefault(row[16], 0).toFixed(2)),
         Utarg: parseFloat(convertToNumberWithDefault(row[4], 0).toFixed(2)),
       };
-      if (newDriver.Kierowca == "Kamil Muskus") {
-        newDriver.Przelew = 0; // zerujemy gotówkę i przelew dla Kamil Muskus.
-        newDriver.Gotówka = 0;
+
+        if (driverName === "Kamil Muskus") {
+          newDriver.Przelew = 0;
+          newDriver.Gotówka = 0;
+          newDriver.Bonus = 0;
+          newDriver.Napiwki = 0;
+          newDriver.Utarg = 0;
+        }
+       driversUber.push(newDriver);
       }
-      driversUber.push(newDriver);
     }
   }
 }
@@ -600,6 +666,19 @@ function removeDriversWithAllZerosFreeNow() {
   });
 }
 
+function removeDriversWithAllZerosUber() {
+  driversUber = driversUber.filter((driver) => {
+    // Sprawdza, czy jakakolwiek wartość nie jest równa zero
+    return (
+      driver.Gotówka !== 0 ||
+      driver.Przelew !== 0 ||
+      driver.Bonus !== 0 ||
+      driver.Napiwki !== 0 ||
+      driver.Utarg !== 0
+    );
+  });
+}
+
 function driversSummary(driversBolt, driversUber, driversFreeNow) {
   let combinedDrivers = [];
 
@@ -679,7 +758,7 @@ onMounted(() => {
     { Kierowca: "", Gotówka: 0, Przelew: 0, Bonus: 0, Napiwki: 0, Utarg: 0 },
   ];
   driversUber.value = [
-    { Kierowca: "", Gotówka: 999, Przelew: 0, Bonus: 0, Napiwki: 0, Utarg: 0 },
+    { Kierowca: "", Gotówka: 0, Przelew: 0, Bonus: 0, Napiwki: 0, Utarg: 0 },
   ];
 });
 </script>
